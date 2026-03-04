@@ -65,3 +65,49 @@ exports.login = async (req, res) => {
 
   return res.json({ user: safe, token });
 };
+
+// Get user by ID
+exports.getUserById = async (req, res) => {
+    try {
+        const { userId } = req.params;
+        
+        console.log('Searching for user with userId:', userId); // Debug log
+        
+        // Search by the custom 'userId' field, not MongoDB '_id'
+        const user = await User.findOne({ userId: userId });
+        
+        if (!user) {
+            console.log('User not found with userId:', userId);
+            return res.status(404).json({
+                status: 'error',
+                message: 'User not found'
+            });
+        }
+
+        console.log('User found:', user.email);
+        
+        // Return user data without sensitive info
+        res.json({
+            status: 'success',
+            data: {
+                user: {
+                    id: user.userId,
+                    email: user.email,
+                    firstName: user.firstName,
+                    lastName: user.lastName,
+                    phone: user.phone,
+                    loyaltyPoints: user.loyaltyPoints,
+                    loyaltyTier: user.loyaltyTier,
+                    createdAt: user.createdAt
+                }
+            }
+        });
+    } catch (error) {
+        console.error('Get user error:', error);
+        res.status(500).json({
+            status: 'error',
+            message: 'Failed to get user',
+            error: error.message
+        });
+    }
+};
